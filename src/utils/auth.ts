@@ -22,37 +22,36 @@ export interface AuthResponse {
 // Sign up with email and password
 export async function signUp(email: string, password: string, name: string): Promise<AuthResponse> {
   try {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name: name,
-        },
+    // Call server endpoint to create user with auto-confirmation
+    const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-46b7cb79/auth/signup`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${publicAnonKey}`,
       },
+      body: JSON.stringify({ email, password, name }),
     });
 
-    if (error) {
-      console.error('Signup error:', error);
-      return { success: false, error: error.message };
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      console.error('Signup error:', result.error);
+      return { success: false, error: result.error || 'Failed to create user' };
     }
 
-    if (!data.user) {
-      return { success: false, error: 'Failed to create user' };
+    // Now sign in the user automatically
+    const signInResult = await signIn(email, password);
+    
+    if (!signInResult.success) {
+      // User was created but couldn't sign in - still a success
+      return { 
+        success: true, 
+        user: result.user,
+        error: 'Account created but auto-login failed. Please sign in manually.'
+      };
     }
 
-    // Store user profile in KV store
-    const userProfile: User = {
-      id: data.user.id,
-      email: data.user.email!,
-      name: name,
-      created_at: new Date().toISOString(),
-    };
-
-    return { 
-      success: true, 
-      user: userProfile 
-    };
+    return signInResult;
   } catch (error) {
     console.error('Signup exception:', error);
     return { 

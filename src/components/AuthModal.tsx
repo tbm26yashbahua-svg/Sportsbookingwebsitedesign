@@ -93,12 +93,12 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
       setLoading(false);
 
       if (result.success) {
-        setSuccess('Account created successfully! Please check your email to verify your account.');
+        setSuccess('Account created successfully! Signing you in...');
         setTimeout(() => {
           onSuccess();
           onClose();
           resetForm();
-        }, 2000);
+        }, 1500);
       } else {
         setError(result.error || 'Failed to create account');
       }

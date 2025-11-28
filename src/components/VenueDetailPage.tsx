@@ -40,6 +40,19 @@ export function VenueDetailPage({ setBookingData }: VenueDetailPageProps) {
     fetchReviews();
   }, [id]);
 
+  if (!venue) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-gray-900 mb-4">Venue not found</h2>
+          <button onClick={() => navigate('/sports')} className="text-blue-600 hover:underline">
+            Browse all sports
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const amenityIcons: { [key: string]: any } = {
     'Parking': Car,
     'WiFi': Wifi,
@@ -219,9 +232,9 @@ export function VenueDetailPage({ setBookingData }: VenueDetailPageProps) {
                 <div className="text-center py-8 text-gray-500">
                   <p>Loading reviews...</p>
                 </div>
-              ) : venueReviews.length > 0 ? (
+              ) : reviews.length > 0 ? (
                 <div className="space-y-6">
-                  {venueReviews.map((review) => (
+                  {reviews.map((review) => (
                     <div key={review.id} className="border-b border-gray-100 last:border-0 pb-6 last:pb-0">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center">

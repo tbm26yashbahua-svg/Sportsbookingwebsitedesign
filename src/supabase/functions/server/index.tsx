@@ -21,6 +21,53 @@ function generateId(prefix: string): string {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
+// ==================== AUTH ====================
+
+// Sign up a new user with auto-confirmation
+app.post('/make-server-46b7cb79/auth/signup', async (c) => {
+  try {
+    const body = await c.req.json();
+    const { email, password, name } = body;
+
+    if (!email || !password || !name) {
+      return c.json({ error: 'Missing required fields: email, password, name' }, 400);
+    }
+
+    // Use admin API to create user with email_confirm: true
+    const { data, error } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      user_metadata: { name },
+      // Automatically confirm the user's email since we're disabling email confirmation
+      email_confirm: true
+    });
+
+    if (error) {
+      console.error('Signup error:', error);
+      return c.json({ error: error.message }, 400);
+    }
+
+    if (!data.user) {
+      return c.json({ error: 'Failed to create user' }, 500);
+    }
+
+    console.log(`User created successfully: ${data.user.id} (${email})`);
+
+    return c.json({
+      success: true,
+      user: {
+        id: data.user.id,
+        email: data.user.email,
+        name: name,
+        created_at: data.user.created_at
+      }
+    });
+  } catch (error) {
+    console.error('Signup exception:', error);
+    return c.json({ error: 'Failed to create user', details: error.message }, 500);
+  }
+});
+
 // ==================== BOOKINGS ====================
 
 // Create a new booking
